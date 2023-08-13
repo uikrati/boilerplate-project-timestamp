@@ -19,41 +19,31 @@ app.get("/", function (req, res) {
 });
 
 
+const unixRegex = /^\d+$/;
 const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-const timestampRegex = /^\d+$/;
 
-app.get('/api/:input?', (req, res) => {
-  const input = req.params.input;
+app.get("/api/:date", (req, res) => {
+  const { date } = req.params;
 
-  if (!input) {
-    const currentTimestamp = Date.now();
-    const currentUTC = new Date(currentTimestamp).toUTCString();
-    res.json({ unix: currentTimestamp, UTC: currentUTC });
-    return;
-  }
-  if (dateRegex.test(input)) {
-    const inputDate = new Date(input);
-    const UTCTimestamp = inputDate.toUTCString();
-    const unix = inputDate.getTime();
-    res.json({ "unix": unix, "UTC": UTCTimestamp });
-  } else if (timestampRegex.test(input)) {
-    const timestamp = parseInt(input);
-    const date = new Date(timestamp);
-    const response = {
-      unix: timestamp,
-      utc: date.toUTCString()
-    };
-    res.json(response);
+  if (unixRegex.test(date)) {
+    const timestamp = parseInt(date);
+    const dateObj = new Date(timestamp);
+    const utcFormatted = dateObj.toUTCString();
+    res.json({ unix: timestamp, utc: utcFormatted });
+  } else if (dateRegex.test(date)) {
+    const parsedDate = new Date(date);
+
+    if (isNaN(parsedDate.getTime())) {
+      res.json({ error: "Invalid Date" });
+    } else {
+      const unixTimestamp = parsedDate.getTime();
+      const utcFormatted = parsedDate.toUTCString();
+      res.json({ unix: unixTimestamp, utc: utcFormatted });
+    }
   } else {
-    res.status(400).json({ error: 'Invalid input' });
+    res.status(400).json({ error: "Invalid input" });
   }
 });
-
-
-
-
-
-
 
 
 // listen for requests :)
