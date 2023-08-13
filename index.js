@@ -19,29 +19,24 @@ app.get("/", function (req, res) {
 });
 
 
-const unixRegex = /^\d+$/;
-const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-
-app.get("/api/:date", (req, res) => {
+app.get("/api/:date?", (req, res) => {
   const { date } = req.params;
+  let inputDate;
 
-  if (unixRegex.test(date)) {
-    const timestamp = parseInt(date);
-    const dateObj = new Date(timestamp);
-    const utcFormatted = dateObj.toUTCString();
-    res.json({ unix: timestamp, utc: utcFormatted });
-  } else if (dateRegex.test(date)) {
-    const parsedDate = new Date(date);
-
-    if (isNaN(parsedDate.getTime())) {
-      res.json({ error: "Invalid Date" });
-    } else {
-      const unixTimestamp = parsedDate.getTime();
-      const utcFormatted = parsedDate.toUTCString();
-      res.json({ unix: unixTimestamp, utc: utcFormatted });
-    }
+  if (!date) {
+    inputDate = new Date();
+  } else if (/^\d+$/.test(date)) {
+    inputDate = new Date(parseInt(date));
   } else {
-    res.status(400).json({ error: "Invalid input" });
+    inputDate = new Date(date);
+  }
+
+  if (isNaN(inputDate)) {
+    res.json({ error: "Invalid Date" });
+  } else {
+    const unixTimestamp = inputDate.getTime();
+    const utcFormatted = inputDate.toUTCString();
+    res.json({ unix: unixTimestamp, utc: utcFormatted });
   }
 });
 
